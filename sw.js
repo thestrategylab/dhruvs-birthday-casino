@@ -1,5 +1,5 @@
 /* Dhruv's Birthday Casino — offline-first service worker */
-const CACHE = 'dbc-v3';
+const CACHE = 'dbc-v4';
 const CORE = [
   "./",
   "index.html",
