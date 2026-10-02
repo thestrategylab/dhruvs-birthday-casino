@@ -12,11 +12,17 @@ Dhruv (29) and his close friends, drinking at a house party, dim lighting, phone
 - **Language:** English UI, Hinglish prompts, Bollywood trivia alongside general.
 - **Topology:** Shareable link; master-phone play with pass-the-phone secret reveals. Multi-phone sync explicitly optional per user ("if not no problem").
 
+## Round-2 confirmed decisions (user, 2 Oct 2026)
+- **No raw emoji anywhere.** All pictorial content renders as local Twemoji sticker SVGs ("stickers also work" — user); UI chrome uses drawn SVG icons. CC-BY credit in README.
+- **Finish bar: "should feel like a $15,000 app."** Premium pass is a standing requirement, not a one-off.
+- Meme eras confirmed: Hera Pheri/Welcome classics + 2020 lockdown + current reels brainrot (no IPL).
+- Deepest decks: social deduction, prompt decks, team battles. Sip intensity stays 2-3 standard.
+
 ## Product truths
 - Roster: 2–15 named players, editable any time, persisted in localStorage (best-effort).
 - Every game must be *fully functioning* — real decks, real logic, real win/lose/drink outcomes. No placeholders.
 - Penalties are sips (occasionally "finish your drink" for big moments).
-- Games (15): Kings Cup, Irish Poker, Mafia, Mr. White (Undercover), Bollywood Battle, Trivia Royale, Never Have I Ever, Most Likely To, Truth or Dare, Odds Are, Flash Match (Dobble-style), Higher-Lower betting, Wheel of Fate, Categories, Chaos Deck (Picolo-style name-interpolated prompts).
+- Games (16): Kings Cup, Irish Poker, Mafia (God-narrated), Mr. White (configurable Undercover/Mr. White counts), Bollywood Battle (stickers/dialogues/plots/memes), Trivia Royale (suit-tile board), Never Have I Ever, Most Likely To, Truth or Dare, Odds Are, Flash Match (Dobble-style), Higher-Lower betting, Wheel of Fate (pooled dare/truth/coin/mystery segments), Categories, Chaos Deck (Picolo-style name-interpolated prompts), Daaru Slots (user-requested 2 Oct: three name reels, pair doubles, triple finishes).
 - Secret-role games use tap-to-reveal / pass-the-phone; nothing requires a network.
 
 ## Assumptions (labeled, not confirmed)

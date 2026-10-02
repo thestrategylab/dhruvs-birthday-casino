@@ -904,7 +904,7 @@ start(body){
   function round(){
     body.innerHTML = '<div class="howto centered"><b>Pull the lever.</b> The three names that land drink 2 each. A pair doubles their pour. Triple = finish your drink.</div>'
       +'<div class="slots"><div class="reel" id="r0"></div><div class="reel" id="r1"></div><div class="reel" id="r2"></div></div>'
-      +'<button class="chipbtn big red" id="pull">PULL THE LEVER</button><div id="res"></div>';
+      +'<button class="chipbtn big" id="pull">PULL THE LEVER</button><div id="res"></div>';
     const reels = [0,1,2].map(i=>$('#r'+i,body));
     const strips = reels.map(()=>{ let ns=[]; for(let k=0;k<6;k++) ns=ns.concat(shuffle(players)); return ns; });
     reels.forEach((r,ri)=>{
