@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Dhruv's Birthday Casino</title>
+<meta name="description" content="15 drinking games for one legendary night.">
+<meta name="theme-color" content="#082B20">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dhruv's Casino">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Limelight&family=Oswald:wght@400;500;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<style>
+:root{
+  --felt-900:#052018; --felt-800:#082B20; --felt-700:#0B3D2E; --felt-600:#11503C;
+  --felt-line:#1A5C46;
+  --gold:#D4AF37; --gold-hi:#F0D98C; --gold-dim:#8C7426; --gold-ink:#2A2008;
+  --bone:#F3EBD8; --bone-dim:#CFC5AC;
+  --card-face:#F7F1E1; --card-ink:#232019;
+  --red:#C0392B; --red-hi:#E05445;
+  --ink-hi:#F3EBD8; --ink-mid:#C9D6CB; --ink-low:#8FA796;
+  --good:#7FC98B; --bad:#E05445;
+  --chip-s: 0 2px 0 #06251B, 0 6px 14px rgba(0,0,0,.45);
+  --r-card:14px; --r-chip:999px;
+  --font-marquee:'Limelight', 'Georgia', serif;
+  --font-label:'Oswald', 'Avenir Next Condensed', sans-serif;
+  --font-body:'Source Sans 3', -apple-system, 'Segoe UI', sans-serif;
+  color-scheme: dark;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  margin:0; font-family:var(--font-body); font-size:16px; line-height:1.45;
+  color:var(--ink-hi);
+  background:
+    radial-gradient(130% 90% at 50% 0%, rgba(240,217,140,.07), transparent 55%),
+    radial-gradient(120% 120% at 50% 110%, #031610 0%, transparent 60%),
+    repeating-linear-gradient(55deg, rgba(255,255,255,.012) 0 2px, transparent 2px 5px),
+    repeating-linear-gradient(-55deg, rgba(0,0,0,.05) 0 2px, transparent 2px 5px),
+    linear-gradient(180deg, var(--felt-700), var(--felt-800) 70%, var(--felt-900));
+  background-attachment:fixed;
+  min-height:100%;
+  padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px);
+  overscroll-behavior-y:contain;
+  user-select:none; -webkit-user-select:none;
+}
+::selection{background:var(--gold); color:var(--gold-ink)}
+:focus-visible{outline:2px solid var(--gold-hi); outline-offset:3px; border-radius:4px}
+button{font:inherit; color:inherit; background:none; border:0; cursor:pointer; padding:0}
+input{font:inherit}
+[hidden]{display:none!important}
+
+/* ---------- layout ---------- */
+.wrap{max-width:520px; margin:0 auto; padding:0 18px 40px}
+.screen{display:none}
+.screen.on{display:block; animation:screenIn .32s cubic-bezier(.2,.8,.2,1)}
+@keyframes screenIn{from{opacity:0; transform:translateY(10px)}to{opacity:1; transform:none}}
+
+/* ---------- marquee header ---------- */
+.marquee{text-align:center; padding:26px 0 10px}
+.marquee .bulbs{letter-spacing:.6em; color:var(--gold); font-size:11px; margin-bottom:10px}
+.marquee h1{
+  font-family:var(--font-marquee); font-weight:400; margin:0;
+  font-size:clamp(34px, 11vw, 48px); line-height:1.04; letter-spacing:.01em;
+  color:var(--gold-hi);
+  text-shadow:0 1px 0 #6b571b, 0 3px 10px rgba(0,0,0,.55), 0 0 26px rgba(240,217,140,.22);
+}
+.marquee h1 .nm{display:block; font-size:.62em; color:var(--bone)}
+.rule-double{border:0; border-top:1px solid var(--gold-dim); border-bottom:1px solid var(--gold-dim); height:5px; margin:16px 0; opacity:.85}
+.tagline{font-family:var(--font-label); text-transform:uppercase; letter-spacing:.32em; font-size:11px; color:var(--ink-low); text-align:center; margin:0 0 6px}
+
+/* ---------- top bar (game screens) ---------- */
+.topbar{
+  position:sticky; top:env(safe-area-inset-top,0px); z-index:30;
+  display:flex; align-items:center; gap:10px;
+  margin:0 -18px; padding:12px 14px;
+  background:linear-gradient(180deg, rgba(5,32,24,.96), rgba(5,32,24,.88));
+  backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--felt-line);
+}
+.topbar h2{font-family:var(--font-label); font-weight:500; text-transform:uppercase; letter-spacing:.18em; font-size:15px; margin:0; color:var(--gold); flex:1; text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.iconbtn{
+  width:40px; height:40px; border-radius:10px; flex:0 0 auto;
+  display:grid; place-items:center; color:var(--bone);
+  background:rgba(243,235,216,.06); border:1px solid var(--felt-line);
+  transition:background .15s;
+}
+.iconbtn:active{background:rgba(243,235,216,.14)}
+.iconbtn svg{width:20px; height:20px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round}
+
+/* ---------- chips & buttons ---------- */
+.chipbtn{
+  display:inline-flex; align-items:center; justify-content:center; gap:8px;
+  font-family:var(--font-label); font-weight:500; text-transform:uppercase; letter-spacing:.14em;
+  font-size:14px; padding:14px 22px; border-radius:var(--r-chip);
+  background:linear-gradient(180deg, var(--gold-hi), var(--gold) 55%, #B8932C);
+  color:var(--gold-ink); box-shadow:var(--chip-s), inset 0 0 0 1px rgba(255,255,255,.35), inset 0 0 0 5px rgba(42,32,8,.14);
+  transition:transform .12s, box-shadow .12s, filter .15s;
+}
+.chipbtn:active{transform:translateY(2px); box-shadow:0 1px 0 #06251B, 0 3px 8px rgba(0,0,0,.4), inset 0 0 0 1px rgba(255,255,255,.35), inset 0 0 0 5px rgba(42,32,8,.14)}
+.chipbtn.red{background:linear-gradient(180deg, var(--red-hi), var(--red) 55%, #8E2A1F); color:var(--bone)}
+.chipbtn.quiet{background:rgba(243,235,216,.07); color:var(--bone); box-shadow:0 2px 0 #041b13, 0 4px 10px rgba(0,0,0,.3), inset 0 0 0 1px var(--felt-line)}
+.chipbtn.big{width:100%; padding:17px 22px; font-size:16px}
+.chipbtn:disabled{filter:grayscale(.7) brightness(.7); pointer-events:none}
+.btnrow{display:flex; gap:10px; margin-top:14px}
+.btnrow .chipbtn{flex:1}
+.btncol{display:flex; flex-direction:column; gap:10px; margin-top:14px}
+
+/* ---------- roster ---------- */
+.rosterbox{
+  border:1px solid var(--felt-line); border-radius:var(--r-card);
+  background:linear-gradient(180deg, rgba(5,32,24,.5), rgba(5,32,24,.25));
+  padding:14px; margin:18px 0 22px;
+}
+.rosterbox .rhead{display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:10px}
+.rosterbox .rhead .lbl{font-family:var(--font-label); text-transform:uppercase; letter-spacing:.22em; font-size:12px; color:var(--gold)}
+.rosterbox .rhead .cnt{font-size:13px; color:var(--ink-low); font-variant-numeric:tabular-nums}
+.chips{display:flex; flex-wrap:wrap; gap:8px}
+.pchip{
+  display:inline-flex; align-items:center; gap:7px;
+  font-size:14px; font-weight:600; color:var(--card-ink);
+  background:linear-gradient(180deg, #FBF6E8, var(--card-face));
+  border-radius:var(--r-chip); padding:7px 8px 7px 13px;
+  box-shadow:0 2px 5px rgba(0,0,0,.35), inset 0 0 0 1px rgba(35,32,25,.12);
+}
+.pchip .x{width:20px; height:20px; border-radius:50%; display:grid; place-items:center; background:rgba(35,32,25,.1); color:#6b6353; font-size:13px; line-height:1}
+.pchip .x:active{background:var(--red); color:#fff}
+.addrow{display:flex; gap:8px; margin-top:12px}
+.addrow input{
+  flex:1; min-width:0; border-radius:10px; border:1px solid var(--felt-line);
+  background:rgba(3,22,16,.6); color:var(--ink-hi); padding:11px 14px; font-size:16px;
+}
+.addrow input::placeholder{color:var(--ink-low)}
+.addrow .chipbtn{padding:11px 18px}
+.empty-note{color:var(--ink-low); font-size:14px; font-style:italic; margin:4px 0 0}
+
+/* ---------- game floor ---------- */
+.floor-lbl{display:flex; align-items:center; gap:12px; margin:4px 0 14px}
+.floor-lbl::before,.floor-lbl::after{content:""; flex:1; height:1px; background:linear-gradient(90deg, transparent, var(--gold-dim))}
+.floor-lbl::after{background:linear-gradient(90deg, var(--gold-dim), transparent)}
+.floor-lbl span{font-family:var(--font-label); text-transform:uppercase; letter-spacing:.3em; font-size:12px; color:var(--gold)}
+.floor{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+.table-card{
+  position:relative; text-align:left; border-radius:var(--r-card);
+  background:linear-gradient(168deg, #FBF6E8 0%, var(--card-face) 60%, #ECE2C8 100%);
+  color:var(--card-ink); padding:40px 28px 13px 13px; min-height:128px;
+  box-shadow:0 3px 7px rgba(0,0,0,.4), 0 10px 22px rgba(0,0,0,.25), inset 0 0 0 1px rgba(35,32,25,.1);
+  display:flex; flex-direction:column; justify-content:flex-end;
+  transition:transform .14s;
+  overflow:hidden;
+}
+.table-card::after{content:""; position:absolute; inset:5px; border-radius:10px; border:1px solid rgba(176,142,45,.45); pointer-events:none}
+.table-card:active{transform:scale(.97)}
+.table-card .pip{
+  position:absolute; top:9px; left:11px; font-size:17px; line-height:1.1; font-weight:700;
+  display:flex; flex-direction:column; align-items:center; font-family:'Georgia', serif;
+}
+.table-card .pip small{font-size:15px}
+.table-card .pip.r{color:var(--red)} .table-card .pip.b{color:#20242c}
+.table-card .pip2{position:absolute; bottom:9px; right:11px; transform:rotate(180deg); top:auto; left:auto}
+.table-card h3{font-family:var(--font-label); font-weight:600; text-transform:uppercase; letter-spacing:.07em; font-size:15.5px; line-height:1.15; margin:0 0 3px}
+.table-card p{margin:0; font-size:12.5px; line-height:1.3; color:#6b6353}
+.table-card .players-need{position:absolute; top:10px; right:11px; font-family:var(--font-label); font-size:10.5px; letter-spacing:.08em; color:#6f6236}
+
+/* ---------- generic game panel ---------- */
+.panel{margin-top:18px}
+.gamehead{text-align:center; margin:16px 0 6px}
+.gamehead .suit{font-size:26px; font-family:Georgia,serif}
+.gamehead .suit.r{color:var(--red-hi)} .gamehead .suit.b{color:var(--bone)}
+.howto{
+  border:1px dashed var(--gold-dim); border-radius:var(--r-card); padding:14px 16px;
+  color:var(--ink-mid); font-size:14.5px; margin:14px 0; background:rgba(5,32,24,.35);
+}
+.howto b{color:var(--gold-hi)}
+.howto ul{margin:8px 0 0; padding-left:18px} .howto li{margin:3px 0}
+.kicker-turn{
+  text-align:center; font-family:var(--font-label); text-transform:uppercase;
+  letter-spacing:.2em; font-size:12px; color:var(--ink-low); margin:14px 0 6px;
+}
+.turn-name{
+  text-align:center; font-family:var(--font-marquee); font-size:30px; color:var(--gold-hi);
+  margin:0 0 10px; text-shadow:0 2px 8px rgba(0,0,0,.5);
+}
+
+/* ---------- playing card ---------- */
+.deal-zone{display:flex; justify-content:center; margin:18px 0; perspective:900px}
+.pcard{
+  width:min(210px, 56vw); aspect-ratio:5/7; border-radius:16px; position:relative;
+  transform-style:preserve-3d; transition:transform .55s cubic-bezier(.3,1.2,.3,1);
+}
+.pcard.flip{transform:rotateY(180deg)}
+.pcard .face{
+  position:absolute; inset:0; border-radius:16px; backface-visibility:hidden; -webkit-backface-visibility:hidden;
+  box-shadow:0 6px 16px rgba(0,0,0,.5), 0 18px 40px rgba(0,0,0,.3);
+}
+.pcard .back{
+  background:
+    radial-gradient(60% 60% at 50% 50%, rgba(240,217,140,.16), transparent 70%),
+    repeating-linear-gradient(45deg, #7E1F15 0 7px, #6E1A11 7px 14px);
+  border:6px solid var(--card-face);
+  display:grid; place-items:center;
+}
+.pcard .back .bmono{font-family:var(--font-marquee); font-size:44px; color:var(--gold-hi); text-shadow:0 2px 6px rgba(0,0,0,.6)}
+.pcard .front{
+  background:linear-gradient(165deg, #FBF6E8, var(--card-face) 65%, #EFE5CB);
+  transform:rotateY(180deg); color:var(--card-ink);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+}
+.pcard .front .corner{position:absolute; top:10px; left:12px; font-family:Georgia,serif; font-weight:700; font-size:24px; line-height:1; text-align:center}
+.pcard .front .corner small{display:block; font-size:20px}
+.pcard .front .corner.flip2{top:auto; left:auto; bottom:10px; right:12px; transform:rotate(180deg)}
+.pcard .front .bigsuit{font-size:72px; font-family:Georgia,serif; line-height:1}
+.pcard .front .rankword{font-family:var(--font-label); text-transform:uppercase; letter-spacing:.14em; font-size:13px; color:#6b6353; margin-top:8px}
+.pcard .front.r{color:var(--red)} .pcard .front.b{color:#20242c}
+.pcard.glint .face::after{
+  content:""; position:absolute; inset:0; border-radius:16px; pointer-events:none;
+  background:linear-gradient(115deg, transparent 30%, rgba(255,255,255,.55) 48%, transparent 62%);
+  background-size:260% 100%; animation:glint .9s ease-out .35s both;
+}
+@keyframes glint{from{background-position:120% 0; opacity:1}to{background-position:-60% 0; opacity:0}}
+
+/* ---------- prompt card ---------- */
+.prompt-card{
+  border-radius:var(--r-card); position:relative; margin:18px 0;
+  background:linear-gradient(168deg, #FBF6E8, var(--card-face) 60%, #ECE2C8);
+  color:var(--card-ink); padding:30px 22px; min-height:170px;
+  box-shadow:0 5px 12px rgba(0,0,0,.45), 0 16px 34px rgba(0,0,0,.25), inset 0 0 0 1px rgba(35,32,25,.1);
+  display:flex; flex-direction:column; justify-content:center; text-align:center;
+  animation:dealIn .4s cubic-bezier(.2,1.1,.3,1);
+}
+@keyframes dealIn{from{opacity:0; transform:translateY(16px) rotate(-1.2deg) scale(.97)}to{opacity:1; transform:none}}
+.prompt-card::after{content:""; position:absolute; inset:7px; border-radius:9px; border:1px solid rgba(176,142,45,.45); pointer-events:none}
+.prompt-card .cat{font-family:var(--font-label); text-transform:uppercase; letter-spacing:.24em; font-size:11px; color:#6f6236; margin-bottom:12px}
+.prompt-card .ptext{font-size:20px; font-weight:600; line-height:1.4; text-wrap:balance}
+.prompt-card .ptext.sm{font-size:17px}
+.prompt-card .sub{margin-top:12px; font-size:14px; color:#6b6353; font-style:italic}
+.prompt-card .emojirow{font-size:40px; line-height:1.3; letter-spacing:.1em; margin:6px 0}
+.prompt-card.reveal-dim .ptext{filter:blur(0)}
+
+/* penalty strip */
+.sip-strip{
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  font-family:var(--font-label); text-transform:uppercase; letter-spacing:.16em; font-size:13px;
+  color:var(--gold-hi); margin:6px 0 2px;
+}
+.sip-strip::before,.sip-strip::after{content:"✦"; color:var(--gold-dim); font-size:10px}
+
+/* ---------- options / MCQ ---------- */
+.opts{display:flex; flex-direction:column; gap:10px; margin:14px 0}
+.opt{
+  text-align:left; padding:13px 16px; border-radius:12px; font-size:16px; font-weight:600;
+  background:rgba(243,235,216,.07); border:1px solid var(--felt-line); color:var(--ink-hi);
+  transition:background .15s, border-color .15s;
+}
+.opt:active{background:rgba(243,235,216,.15)}
+.opt.correct{background:rgba(127,201,139,.18); border-color:var(--good); color:var(--good)}
+.opt.wrong{background:rgba(224,84,69,.15); border-color:var(--bad); color:var(--bad)}
+.opt .ol{font-family:var(--font-label); color:var(--gold); margin-right:10px}
+
+/* player pick grid */
+.pgrid{display:grid; grid-template-columns:1fr 1fr; gap:9px; margin:14px 0}
+.pgrid .opt{text-align:center}
+.pgrid .opt.sel{border-color:var(--gold); background:rgba(212,175,55,.16); color:var(--gold-hi)}
+.pgrid .opt.dead{opacity:.35; text-decoration:line-through; pointer-events:none}
+
+/* ---------- reveal (hold to peek) ---------- */
+.peek{
+  border-radius:var(--r-card); margin:18px 0; min-height:230px; position:relative;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
+  background:
+    radial-gradient(60% 60% at 50% 45%, rgba(240,217,140,.12), transparent 70%),
+    repeating-linear-gradient(45deg, #7E1F15 0 7px, #6E1A11 7px 14px);
+  border:6px solid var(--card-face);
+  box-shadow:0 6px 16px rgba(0,0,0,.5);
+  color:var(--bone); padding:24px; touch-action:none;
+}
+.peek .hint{font-family:var(--font-label); text-transform:uppercase; letter-spacing:.2em; font-size:12px; color:var(--gold-hi)}
+.peek .who{font-family:var(--font-marquee); font-size:30px; margin:6px 0 10px; color:#fff; text-shadow:0 2px 6px rgba(0,0,0,.6)}
+.peek.open{background:linear-gradient(165deg,#FBF6E8,var(--card-face)); color:var(--card-ink); border-color:#7E1F15}
+.peek.open .hint{color:#6f6236}
+.peek.open .who{color:var(--card-ink); text-shadow:none}
+.peek .secret{font-size:24px; font-weight:700; line-height:1.3}
+.peek .secret .role-vill{color:#1d6b3a} .peek .secret .role-bad{color:var(--red)} .peek .secret .role-spec{color:#1d4e6b}
+.peek .sdesc{font-size:14px; color:#6b6353; margin-top:8px; max-width:30ch}
+
+/* ---------- timer ring ---------- */
+.ringwrap{display:grid; place-items:center; margin:16px 0}
+.ring{width:140px; height:140px; transform:rotate(-90deg)}
+.ring .bg{fill:none; stroke:rgba(243,235,216,.12); stroke-width:9}
+.ring .fg{fill:none; stroke:var(--gold); stroke-width:9; stroke-linecap:round; transition:stroke-dashoffset .2s linear, stroke .3s}
+.ring.danger .fg{stroke:var(--red-hi)}
+.ringnum{position:absolute; font-family:var(--font-label); font-size:40px; font-weight:600; color:var(--bone); font-variant-numeric:tabular-nums}
+
+/* ---------- wheel ---------- */
+.wheelwrap{position:relative; display:grid; place-items:center; margin:20px 0}
+.wheel{width:min(320px,86vw); height:auto; filter:drop-shadow(0 10px 24px rgba(0,0,0,.5))}
+.wheel-rotor{transition:transform 4.6s cubic-bezier(.12,.6,.04,1)}
+.pointer{position:absolute; top:-6px; left:50%; transform:translateX(-50%); z-index:2}
+
+/* ---------- scoreboard ---------- */
+.scorebar{display:flex; gap:10px; margin:14px 0}
+.scorebox{flex:1; text-align:center; border:1px solid var(--felt-line); border-radius:12px; padding:10px; background:rgba(5,32,24,.4)}
+.scorebox .t{font-family:var(--font-label); text-transform:uppercase; letter-spacing:.14em; font-size:11px; color:var(--ink-low)}
+.scorebox .v{font-size:26px; font-weight:700; color:var(--gold-hi); font-variant-numeric:tabular-nums}
+.scorebox.team-a .v{color:var(--gold-hi)} .scorebox.team-b .v{color:var(--red-hi)}
+
+/* ---------- toast ---------- */
+#toast{
+  position:fixed; left:50%; bottom:calc(26px + env(safe-area-inset-bottom,0px)); transform:translateX(-50%) translateY(20px);
+  z-index:90; opacity:0; pointer-events:none; transition:opacity .25s, transform .25s;
+  background:linear-gradient(180deg, var(--gold-hi), var(--gold)); color:var(--gold-ink);
+  font-weight:700; font-size:15px; padding:12px 22px; border-radius:var(--r-chip);
+  box-shadow:0 8px 24px rgba(0,0,0,.5); max-width:86vw; text-align:center;
+}
+#toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+
+/* ---------- misc ---------- */
+.note{color:var(--ink-low); font-size:13.5px; text-align:center; margin:10px 0}
+.goldtext{color:var(--gold-hi)}
+.centered{text-align:center}
+.big-result{
+  text-align:center; font-family:var(--font-marquee); font-size:30px; color:var(--gold-hi);
+  margin:18px 0 6px;
+}
+.verdict{text-align:center; font-size:17px; color:var(--ink-mid); margin:4px 0 14px}
+.verdict b{color:var(--bone)}
+.numin{width:100%; border-radius:12px; border:1px solid var(--felt-line); background:rgba(3,22,16,.6); color:var(--ink-hi); padding:14px; font-size:22px; text-align:center; margin:10px 0}
+.footer-foil{margin:34px 0 8px; text-align:center; font-family:var(--font-label); text-transform:uppercase; letter-spacing:.3em; font-size:10.5px; color:var(--gold)}
+.progress-lbl{font-family:var(--font-label); letter-spacing:.14em; text-transform:uppercase; font-size:12px; color:var(--ink-low); text-align:center; margin:8px 0 0; font-variant-numeric:tabular-nums}
+.dualcards{display:flex; gap:10px; justify-content:center; margin:16px 0}
+.symcard{
+  flex:1; max-width:180px; aspect-ratio:5/6.4; border-radius:14px; position:relative;
+  background:linear-gradient(165deg,#FBF6E8,var(--card-face)); color:var(--card-ink);
+  box-shadow:0 5px 12px rgba(0,0,0,.45), inset 0 0 0 1px rgba(35,32,25,.1);
+  display:grid; grid-template-columns:1fr 1fr; place-items:center; padding:16px 8px; font-size:30px;
+}
+.symcard::after{content:""; position:absolute; inset:6px; border-radius:9px; border:1px solid rgba(176,142,45,.45); pointer-events:none}
+.symcard span{transform:rotate(var(--tilt,0deg)); display:block}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important; transition-duration:.01ms!important}
+}
+@media (min-width:460px){ .floor{grid-template-columns:1fr 1fr 1fr} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ============ HOME ============ -->
+  <section id="scr-home" class="screen on">
+    <header class="marquee">
+      <div class="bulbs">✦ ✦ ✦ ✦ ✦</div>
+      <h1><span class="nm">Dhruv's Birthday</span>CASINO</h1>
+      <hr class="rule-double">
+      <p class="tagline">15 tables · sips are the currency</p>
+    </header>
+
+    <div class="rosterbox" id="rosterbox">
+      <div class="rhead">
+        <span class="lbl">Tonight's Table</span>
+        <span class="cnt" id="pcount">0 / 15 players</span>
+      </div>
+      <div class="chips" id="pchips"></div>
+      <p class="empty-note" id="pempty">Add everyone who's drinking tonight.</p>
+      <div class="addrow">
+        <input id="pname" type="text" maxlength="14" placeholder="Player name" autocomplete="off" enterkeyhint="done">
+        <button class="chipbtn" id="paddbtn">Deal&nbsp;In</button>
+      </div>
+    </div>
+
+    <div class="floor-lbl"><span>The Floor</span></div>
+    <div class="floor" id="floor"></div>
+
+    <p class="footer-foil">est. tonight · drink water between rounds</p>
+  </section>
+
+  <!-- ============ GAME ============ -->
+  <section id="scr-game" class="screen">
+    <div class="topbar">
+      <button class="iconbtn" id="backbtn" aria-label="Back to the floor">
+        <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+      </button>
+      <h2 id="gametitle">Game</h2>
+      <button class="iconbtn" id="restartbtn" aria-label="Restart game">
+        <svg viewBox="0 0 24 24"><path d="M4 10a8 8 0 1 1 2 6"/><path d="M4 4v6h6"/></svg>
+      </button>
+    </div>
+    <div id="gamebody" class="panel"></div>
+  </section>
+
+</div>
+<div id="toast" role="status"></div>
+<script src="decks.js"></script>
+<script src="app.js"></script>
+<script>
+if('serviceWorker' in navigator){addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))}
+</script>
+</body>
+</html>
