@@ -143,6 +143,23 @@ function promptCard(cat, text, sub, extraHTML){
     +(sub?'<div class="sub">'+esc(sub)+'</div>':'')+'</div>';
 }
 
+function buzz(p){ try{ navigator.vibrate && navigator.vibrate(p||30); }catch(e){} }
+const IC = {
+  check:'<path d="M4 12.5l5 5 11-12"/>',
+  cross:'<path d="M5.5 5.5l13 13M18.5 5.5l-13 13"/>'
+};
+function icon(n,sz){ return '<svg class="ic" width="'+(sz||14)+'" height="'+(sz||14)+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+IC[n]+'</svg>'; }
+function emo(str, cls){
+  let segs;
+  try{ segs = [...new Intl.Segmenter('en',{granularity:'grapheme'}).segment(str)].map(x=>x.segment); }
+  catch(e){ segs = Array.from(str); }
+  return segs.map(g=>{
+    if(!g.trim()) return '';
+    const src = (window.EMOJI_SRC||{})[g];
+    return src ? '<img class="twe'+(cls?' '+cls:'')+'" src="assets/twemoji/'+src+'.svg" alt="">' : '<span>'+esc(g)+'</span>';
+  }).join('');
+}
+
 /* =========================================================
    GAMES
 ========================================================= */
@@ -169,7 +186,7 @@ start(body){
     $('#ruleout',body).innerHTML = '<div class="big-result">'+esc(t)+'</div>'
       +'<p class="verdict">'+esc(d)+'</p>'
       +(kingNow?'<div class="sip-strip">4th King — finish the King’s Cup</div>':'');
-    if(kingNow) toast('☠️ FOURTH KING. Bottoms up.');
+    if(kingNow) toast('FOURTH KING. Bottoms up.'); buzz([60,60,120]);
     meta();
   });
 }});
@@ -241,10 +258,22 @@ start(body){
       +'<button class="chipbtn big" id="again">New Game</button>';
     $('#again',body).addEventListener('click', ()=>GAMES.find(g=>g.id==='mafia').start(body));
   }
-  // Step 0: pick dealer
-  body.innerHTML = '<div class="howto"><b>One player is the Dealer</b> — they run the night, hold the phone, and don’t get a role. Everyone else gets a secret card.</div>'
-    +'<p class="kicker-turn">Who’s dealing?</p>';
-  body.appendChild(playerGrid(players, p=>{
+  // Step 0: choose God (narrator)
+  function chooseGodScreen(){
+    body.innerHTML = '<div class="howto"><b>One player is God</b> — they run the night, hold the phone, and don’t get a role. Everyone else gets a secret card.</div>'
+      +'<button class="chipbtn big" id="randgod">Let Fate Pick God</button>'
+      +'<p class="note" style="margin-top:14px">...or anoint one yourselves:</p>';
+    $('#randgod',body).addEventListener('click', ()=>godChosen(pick(players)));
+    body.appendChild(playerGrid(players, p=>godChosen(p)));
+  }
+  function godChosen(p){
+    buzz(30);
+    body.innerHTML = '<p class="kicker-turn">Tonight’s God is</p><p class="turn-name">'+esc(p)+'</p>'
+      +'<p class="verdict centered">'+esc(p)+' runs the night, reads the script, and breaks ties. The phone is theirs.</p>'
+      +'<button class="chipbtn big" id="godgo">Hand '+esc(p)+' the Phone</button>';
+    $('#godgo',body).addEventListener('click', ()=>beginWith(p));
+  }
+  function beginWith(p){
     dealer = p; playing = players.filter(x=>x!==p);
     const n = playing.length;
     const mafiaN = n<=6?1 : n<=8?2 : n<=11?3 : 4;
@@ -256,7 +285,8 @@ start(body){
     const dealt = shuffle(bag);
     playing.forEach((pl,i)=>roles[pl]=dealt[i]);
     dealRoles(0);
-  }));
+  }
+  chooseGodScreen();
   function roleHTML(r){
     const cls = r==='Mafia'?'role-bad':(r==='Villager'?'role-vill':'role-spec');
     const desc = {Mafia:'Kill by night. Lie by day. There are '+playing.filter(isMafia).length+' of you.',
@@ -270,7 +300,7 @@ start(body){
     passScreen(body, playing[i], 'Hold the card to see your role. Then pass on.', ()=>{
       body.innerHTML = '';
       body.appendChild(peekEl(playing[i], roleHTML(roles[playing[i]])));
-      const b = document.createElement('button'); b.className='chipbtn big'; b.textContent = i<playing.length-1?'Pass to '+playing[i+1]:'Give the phone to the Dealer';
+      const b = document.createElement('button'); b.className='chipbtn big'; b.textContent = i<playing.length-1?'Pass to '+playing[i+1]:'Give the phone back to God';
       b.style.marginTop='14px';
       b.addEventListener('click', ()=>dealRoles(i+1));
       body.appendChild(b);
@@ -281,21 +311,21 @@ start(body){
     const hasDoc = alive().some(p=>roles[p]==='Doctor');
     const hasDet = alive().some(p=>roles[p]==='Detective');
     function stepMafia(){
-      body.innerHTML = '<p class="kicker-turn">Night '+night+' · Dealer reads aloud</p>'
+      body.innerHTML = '<p class="kicker-turn">Night '+night+' · God reads aloud</p>'
         +'<div class="howto">“'+esc(pick(D.mafiaFlavor.nightOpen))+'”<br>“'+esc(pick(D.mafiaFlavor.kill))+'”</div>'
-        +'<p class="note">Dealer: watch the Mafia’s silent pointing, then tap their target. Only you see this.</p>';
+        +'<p class="note">God: watch the Mafia’s silent pointing, then tap their target. Only you see this.</p>';
       body.appendChild(playerGrid(alive(), p=>{ victim=p; hasDoc?stepDoc():(hasDet?stepDet():morning()); }));
     }
     function stepDoc(){
       body.innerHTML = '<p class="kicker-turn">Night '+night+'</p>'
         +'<div class="howto">“'+esc(pick(D.mafiaFlavor.doctor))+'”</div>'
-        +'<p class="note">Dealer: tap whoever the Doctor saves.</p>';
+        +'<p class="note">God: tap whoever the Doctor saves.</p>';
       body.appendChild(playerGrid(alive(), p=>{ saved=p; hasDet?stepDet():morning(); }));
     }
     function stepDet(){
       body.innerHTML = '<p class="kicker-turn">Night '+night+'</p>'
         +'<div class="howto">“'+esc(pick(D.mafiaFlavor.detective))+'”</div>'
-        +'<p class="note">Dealer: tap who the Detective points at, then nod or shake your head.</p>';
+        +'<p class="note">God: tap who the Detective points at, then nod or shake your head.</p>';
       body.appendChild(playerGrid(alive(), (p,btn)=>{
         btn.classList.add(isMafia(p)?'wrong':'correct');
         btn.textContent = p + (isMafia(p)?' — MAFIA':' — clean');
@@ -306,7 +336,7 @@ start(body){
       const died = victim && victim!==saved ? victim : null;
       if(died) dead.push(died);
       const w = winCheck();
-      body.innerHTML = '<p class="kicker-turn">Morning · Dealer reads aloud</p>'
+      body.innerHTML = '<p class="kicker-turn">Morning · God reads aloud</p>'
         +'<div class="howto">“'+esc(died? D.mafiaFlavor.dayDeath[0].replace(/\{v\}/g,died) : pick(D.mafiaFlavor.dayNoDeath))+'”</div>'
         +(died?'<div class="sip-strip">'+esc(died)+' is out — 3 farewell sips</div>':'<div class="sip-strip">Everyone drinks 1 — to survival</div>')
         +'<button class="chipbtn big" id="day">Start the Day Debate</button>';
@@ -316,7 +346,7 @@ start(body){
   }
   function dayPhase(){
     body.innerHTML = '<p class="kicker-turn">Day '+night+' · Debate</p>'
-      +'<div class="howto">Argue. Accuse. Defend. When the table’s ready, vote someone out — majority rules, dealer breaks ties.</div>'
+      +'<div class="howto">Argue. Accuse. Defend. When the table’s ready, vote someone out — majority rules, God breaks ties.</div>'
       +'<div id="timerbox"></div>'
       +'<p class="note">Tap who the town voted out:</p>';
     const tb = $('#timerbox',body); ringTimer(tb, 120, ()=>toast('Time! Vote now.'));
@@ -338,17 +368,42 @@ start(body){
 GAMES.push({ id:'mrwhite', name:'Mr. White', pip:['Q','♦','r'], hook:'One of you got no word at all.', min:4,
 start(body){
   const n = players.length;
-  const ucN = n>=8?2:1, mwN = n>=5?1:0;
-  const [civWord, ucWord] = shuffle(pick(D.mrwhite));
-  let order = shuffle(players);
-  const roles = {};
-  order.forEach(p=>roles[p]='civ');
-  const special = shuffle(order).slice(0, ucN+mwN);
-  special.forEach((p,i)=>roles[p] = i<ucN?'uc':'mw');
-  // speaking order: Mr. White never first
-  let speak = shuffle(players);
-  while(mwN && roles[speak[0]]==='mw') speak = shuffle(players);
+  let ucN = n>=8?2:1, mwN = n>=5?1:0;
+  let civWord, ucWord, order, roles, speak;
   let out = [];
+  function setupScreen(){
+    const maxBad = Math.max(1, Math.ceil(n/2)-1);
+    function render(){
+      const civ = n - ucN - mwN;
+      const ok = (ucN+mwN)>=1 && (ucN+mwN)<=maxBad;
+      body.innerHTML = '<div class="howto"><b>'+n+' at the table.</b> Civilians share a word, Undercovers get a near-miss word, Mr.\u00A0White gets nothing. Set tonight\u2019s mix:</div>'
+        +'<div class="btnrow" style="align-items:center"><button class="chipbtn quiet" id="ucm">\u2212</button>'
+        +'<div class="scorebox" style="flex:1.6"><div class="t">Undercover</div><div class="v">'+ucN+'</div></div>'
+        +'<button class="chipbtn quiet" id="ucp">+</button></div>'
+        +'<div class="btnrow" style="align-items:center"><button class="chipbtn quiet" id="mwm">\u2212</button>'
+        +'<div class="scorebox" style="flex:1.6"><div class="t">Mr. White</div><div class="v">'+mwN+'</div></div>'
+        +'<button class="chipbtn quiet" id="mwp">+</button></div>'
+        +'<p class="note">'+civ+' civilians'+(ok?'':' \u2014 impostors must be 1 to '+maxBad)+'</p>'
+        +'<button class="chipbtn big" id="start"'+(ok?'':' disabled')+'>Deal the Words</button>';
+      $('#ucm',body).addEventListener('click', ()=>{ ucN=Math.max(0,ucN-1); render(); });
+      $('#ucp',body).addEventListener('click', ()=>{ ucN=Math.min(3,ucN+1); render(); });
+      $('#mwm',body).addEventListener('click', ()=>{ mwN=Math.max(0,mwN-1); render(); });
+      $('#mwp',body).addEventListener('click', ()=>{ mwN=Math.min(2,mwN+1); render(); });
+      $('#start',body).addEventListener('click', ()=>{ assignRoles(); deal(0); });
+    }
+    render();
+  }
+  function assignRoles(){
+    [civWord, ucWord] = shuffle(pick(D.mrwhite));
+    order = shuffle(players);
+    roles = {};
+    order.forEach(p=>roles[p]='civ');
+    const special = shuffle(order).slice(0, ucN+mwN);
+    special.forEach((p,i)=>roles[p] = i<ucN?'uc':'mw');
+    speak = shuffle(players);
+    while(mwN && roles[speak[0]]==='mw') speak = shuffle(players);
+    out = [];
+  }
   const aliveList = ()=>players.filter(p=>!out.includes(p));
   function counts(){ const a=aliveList(); return { bad:a.filter(p=>roles[p]!=='civ').length, civ:a.filter(p=>roles[p]==='civ').length }; }
   function secretHTML(p){
@@ -413,18 +468,19 @@ start(body){
       const next=$('#next',body); if(next) next.addEventListener('click', table);
     });
   }
-  deal(0);
+  setupScreen();
 }});
 
 /* ---------- 5. BOLLYWOOD BATTLE ---------- */
-GAMES.push({ id:'bolly', name:'Bollywood Battle', pip:['9','♥','r'], hook:'Emoji, dialogue, plots — team war.', min:4,
+GAMES.push({ id:'bolly', name:'Bollywood Battle', pip:['9','♥','r'], hook:'Stickers, dialogues, memes — war.', min:4,
 start(body){
   const ord = shuffle(players);
   const A = ord.filter((_,i)=>i%2===0), B = ord.filter((_,i)=>i%2===1);
   let deck = shuffle([
-    ...D.bbEmoji.map(x=>({type:'Guess the movie — emoji',  show:'<div class="emojirow">'+x.e+'</div>', a:x.a})),
-    ...D.bbDialogue.map(x=>({type:'Complete the dialogue', show:'<div class="ptext sm">'+esc(x.q)+'</div>', a:x.a, noq:true})),
-    ...D.bbPlots.map(x=>({type:'Plot, explained badly',    show:'<div class="ptext sm">'+esc(x.q)+'</div>', a:x.a, noq:true}))
+    ...D.bbEmoji.map(x=>({type:'Guess the movie', show:'<div class="emojirow">'+emo(x.e)+'</div>', a:x.a, h:x.h})),
+    ...D.bbDialogue.map(x=>({type:'Complete the dialogue', show:'<div class="ptext sm">'+esc(x.q)+'</div>', a:x.a})),
+    ...D.bbPlots.map(x=>({type:'Plot, explained badly', show:'<div class="ptext sm">'+esc(x.q)+'</div>', a:x.a})),
+    ...D.bbMemes.map(x=>({type:'Meme ki duniya', show:'<div class="ptext sm">'+esc(x.q)+'</div>', a:x.a}))
   ]);
   let sA=0, sB=0, turnA=true, timer=null;
   function scorebar(){
@@ -438,11 +494,16 @@ start(body){
     const team = turnA?'Team Shah Rukh':'Team Salman';
     body.innerHTML = scorebar()
       +'<p class="kicker-turn">'+esc(team)+' — you’re up ('+deck.length+' cards left)</p>'
-      +'<div class="prompt-card"><div class="cat">'+esc(item.type)+'</div>'+item.show+(item.noq?'':'')+'</div>'
+      +'<div class="prompt-card"><div class="cat">'+esc(item.type)+'</div>'+item.show+'</div>'
       +'<div id="tm"></div>'
-      +'<button class="chipbtn quiet big" id="reveal">Reveal Answer</button>'
-      +'<div class="btnrow"><button class="chipbtn" id="got">✓ Got It</button><button class="chipbtn red" id="miss">✗ Missed</button></div>';
-    timer = ringTimer($('#tm',body), 30, ()=>toast('⏰ Time’s up — reveal it!'));
+      +(item.h?'<button class="chipbtn quiet big" id="hint">Hint (costs your team 1 sip)</button>':'')
+      +'<button class="chipbtn quiet big" id="reveal" style="margin-top:10px">Reveal Answer</button>'
+      +'<div class="btnrow"><button class="chipbtn" id="got">'+icon('check')+' Got It</button><button class="chipbtn red" id="miss">'+icon('cross')+' Missed</button></div>';
+    timer = ringTimer($('#tm',body), 30, ()=>toast('Time\u2019s up \u2014 reveal it!'));
+    const hintBtn = $('#hint',body);
+    if(hintBtn) hintBtn.addEventListener('click', e=>{
+      e.target.outerHTML = '<p class="note"><b class="goldtext">Hint:</b> '+esc(item.h)+' \u2014 your team sips 1.</p>';
+    });
     $('#reveal',body).addEventListener('click', e=>{
       e.target.outerHTML = '<div class="howto centered"><b>'+esc(item.a)+'</b></div>';
     });
@@ -467,22 +528,35 @@ start(body){
 /* ---------- 6. TRIVIA ROYALE ---------- */
 GAMES.push({ id:'trivia', name:'Trivia Royale', pip:['10','♠','b'], hook:'Wrong answer? That’s 3 sips.', min:2,
 start(body){
-  let qs = shuffle(D.trivia), i = 0, rota = shuffle(players), ri = 0;
+  let qs = shuffle(D.trivia), i = 0, last = null, right = 0, wrong = 0;
+  const SUITS4 = [['♠','st-spade'],['♥','st-heart'],['♣','st-club'],['♦','st-diamond']];
   function next(){
     if(!qs.length){ qs = shuffle(D.trivia); }
     const q = qs.pop(); i++;
-    const p = rota[ri++ % rota.length];
-    body.innerHTML = '<p class="progress-lbl">Question '+i+' · '+esc(q.c)+'</p>'
+    const pool = players.filter(p=>p!==last);
+    const p = pick(pool.length?pool:players); last = p;
+    const order = shuffle(q.o.map((o,oi)=>({o,oi})));
+    body.innerHTML = '<div class="scorebar">'
+      +'<div class="scorebox"><div class="t">Question</div><div class="v">'+i+'</div></div>'
+      +'<div class="scorebox"><div class="t">Correct</div><div class="v" style="color:var(--good)">'+right+'</div></div>'
+      +'<div class="scorebox"><div class="t">Sips paid</div><div class="v" style="color:var(--red-hi)">'+(wrong*3)+'</div></div></div>'
       +'<p class="kicker-turn">In the hot seat</p><p class="turn-name">'+esc(p)+'</p>'
       +promptCard(q.c, q.q)
-      +'<div class="opts" id="opts"></div><div id="res"></div>';
-    const opts=$('#opts',body);
-    q.o.forEach((o,oi)=>{
-      const b=document.createElement('button'); b.className='opt';
-      b.innerHTML='<span class="ol">'+'ABCD'[oi]+'</span>'+esc(o);
+      +'<div class="optgrid" id="opts"></div><div id="res"></div>';
+    const opts = $('#opts',body);
+    order.forEach((it,k)=>{
+      const su = SUITS4[k];
+      const b = document.createElement('button'); b.className='suit-tile '+su[1];
+      b.innerHTML = '<span class="st-pip">'+su[0]+'</span><span class="st-txt">'+esc(it.o)+'</span>';
       b.addEventListener('click', ()=>{
-        opts.querySelectorAll('.opt').forEach((x,xi)=>{ x.style.pointerEvents='none'; if(xi===q.a) x.classList.add('correct'); });
-        const win = oi===q.a; if(!win) b.classList.add('wrong');
+        const win = it.oi===q.a;
+        opts.querySelectorAll('.suit-tile').forEach((x,xi)=>{
+          x.style.pointerEvents='none';
+          if(order[xi].oi===q.a) x.classList.add('st-right'); else x.classList.add('st-dim');
+        });
+        if(!win) b.classList.add('st-wrong');
+        buzz(win?25:[60,40,60]);
+        if(win) right++; else wrong++;
         $('#res',body).innerHTML = (win
           ?'<div class="sip-strip">Correct — give 2 sips</div>'
           :'<div class="sip-strip">Wrong — '+esc(p)+' drinks 3</div>')
@@ -548,9 +622,9 @@ start(body){
       const text = kind==='Truth'? truths.pop() : dares.pop();
       body.innerHTML = '<p class="kicker-turn">'+esc(p)+' chose</p>'
         +promptCard(kind, text)
-        +'<div class="btnrow"><button class="chipbtn" id="done">✓ Did It</button><button class="chipbtn red" id="nope">🐔 Refused — 5 Sips</button></div>';
+        +'<div class="btnrow"><button class="chipbtn" id="done">'+icon('check')+' Did It</button><button class="chipbtn red" id="nope">'+icon('cross')+' Chickened \u2014 5 Sips</button></div>';
       $('#done',body).addEventListener('click', ()=>{ toast(p+' survives. Respect.'); next(); });
-      $('#nope',body).addEventListener('click', ()=>{ toast(p+' drinks 5. Bawk bawk. 🐔'); next(); });
+      $('#nope',body).addEventListener('click', ()=>{ toast(p+' drinks 5. Cluck cluck.'); next(); });
     }
   }
   next();
@@ -626,13 +700,14 @@ start(body){
       const tilt = ()=>'--tilt:'+rint(-20,20)+'deg';
       body.innerHTML = '<p class="kicker-turn">'+esc(p1)+' vs '+esc(p2)+' — SHOUT IT</p>'
         +'<div class="dualcards">'
-        +'<div class="symcard">'+cardA.map(s=>'<span style="'+tilt()+'">'+s+'</span>').join('')+'</div>'
-        +'<div class="symcard">'+cardB.map(s=>'<span style="'+tilt()+'">'+s+'</span>').join('')+'</div></div>'
+        +'<div class="symcard">'+cardA.map(s=>'<span style="'+tilt()+'">'+emo(s)+'</span>').join('')+'</div>'
+        +'<div class="symcard">'+cardB.map(s=>'<span style="'+tilt()+'">'+emo(s)+'</span>').join('')+'</div></div>'
         +'<p class="note">Who shouted the matching symbol first?</p>'
         +'<div class="btnrow"><button class="chipbtn" id="w1">'+esc(p1)+'</button><button class="chipbtn" id="w2">'+esc(p2)+'</button></div>'
         +'<button class="chipbtn quiet big" id="none" style="margin-top:10px">Nobody got it</button>';
       const done = winner=>{
-        body.innerHTML = '<div class="big-result">'+common+'</div>'
+        buzz(40);
+        body.innerHTML = '<div class="big-result">'+emo(common,'twe-big')+'</div>'
           +'<p class="verdict">'+(winner
             ? '<b>'+esc(winner)+'</b> takes it — '+esc(winner===p1?p2:p1)+' drinks 3.'
             : 'That was the match. Both of you drink 2 for sleeping on it.')+'</p>'
@@ -657,7 +732,7 @@ start(body){
     if(deck.length<2){ deck = buildDeck(); }
     let bet = 2;
     body.innerHTML = '<p class="kicker-turn">At the table</p><p class="turn-name">'+esc(p)+'</p>'
-      +(streak>=3?'<div class="sip-strip">🔥 table streak '+streak+' — payouts doubled</div>':'')
+      +(streak>=3?'<div class="sip-strip">Hot streak '+streak+' \u2014 payouts doubled</div>':'')
       +'<div id="zone"></div>'
       +'<p class="note centered">Bet your sips, then call it.</p>'
       +'<div class="btnrow" style="align-items:center">'
@@ -738,8 +813,16 @@ start(body){
       const done = ()=>{
         spinning = false;
         const w = D.wheel[target];
+        const other = ()=>{ const rest = players.filter(x=>x!==p); return rest.length?pick(rest):p; };
+        let detail = w.d;
+        if(w.k==='dare') detail = pick(D.wheelDares)+' Do it or drink 6.';
+        else if(w.k==='truth') detail = 'The table asks: '+pick(D.truths)+' Answer honestly or drink 5.';
+        else if(w.k==='coin') detail = Math.random()<.5 ? 'HEADS \u2014 you give out 6 sips.' : 'TAILS \u2014 you drink 6 yourself.';
+        else if(w.k==='mystery') detail = pick(D.wheelMystery).replace(/\{p\}/g, other());
+        else if(w.k==='buddy') detail = w.d.replace(/\{p\}/g, other());
+        buzz([30,50,30]);
         $('#res',body).innerHTML = '<div class="big-result">'+esc(w.t)+'</div>'
-          +'<p class="verdict">'+esc(p)+': '+esc(w.d)+'</p>'
+          +'<p class="verdict">'+esc(p)+': '+esc(detail)+'</p>'
           +'<button class="chipbtn big" id="next">Next Spinner</button>';
         $('#next',body).addEventListener('click', ()=>{ ri++; screen(); });
       };
@@ -762,7 +845,7 @@ start(body){
     body.innerHTML = '<div class="prompt-card"><div class="cat">The category is</div><div class="ptext">'+esc(cat)+'</div></div>'
       +'<p class="kicker-turn">On the clock</p><p class="turn-name">'+esc(p)+'</p>'
       +'<div id="tm"></div>'
-      +'<div class="btnrow"><button class="chipbtn" id="ok">✓ Said One</button><button class="chipbtn red" id="fail">✗ Blanked</button></div>';
+      +'<div class="btnrow"><button class="chipbtn" id="ok">'+icon('check')+' Said One</button><button class="chipbtn red" id="fail">'+icon('cross')+' Blanked</button></div>';
     timer = ringTimer($('#tm',body), 8, ()=>fail(p));
     $('#ok',body).addEventListener('click', ()=>{ idx++; turn(); });
     $('#fail',body).addEventListener('click', ()=>fail(p));
@@ -810,6 +893,56 @@ start(body){
   body.innerHTML = '<div class="howto">The deck does the thinking. Names get pulled automatically, rules stack, sips flow. Just read every card out loud and obey.</div>'
     +'<button class="chipbtn big" id="go">Unleash Chaos</button>';
   $('#go',body).addEventListener('click', next);
+}});
+
+
+/* ---------- 16. DAARU SLOTS ---------- */
+GAMES.push({ id:'slots', name:'Daaru Slots', pip:['7','♠','b'], hook:'Three reels pick three drinkers.', min:3,
+start(body){
+  const ITEM = 54;
+  function round(){
+    body.innerHTML = '<div class="howto centered"><b>Pull the lever.</b> The three names that land drink 2 each. A pair doubles their pour. Triple = finish your drink.</div>'
+      +'<div class="slots"><div class="reel" id="r0"></div><div class="reel" id="r1"></div><div class="reel" id="r2"></div></div>'
+      +'<button class="chipbtn big red" id="pull">PULL THE LEVER</button><div id="res"></div>';
+    const reels = [0,1,2].map(i=>$('#r'+i,body));
+    const strips = reels.map(()=>{ let ns=[]; for(let k=0;k<6;k++) ns=ns.concat(shuffle(players)); return ns; });
+    reels.forEach((r,ri)=>{
+      r.innerHTML = '<div class="strip">'+strips[ri].map(nm=>'<div class="slotname">'+esc(nm)+'</div>').join('')+'</div>';
+    });
+    $('#pull',body).addEventListener('click', ()=>{
+      $('#pull',body).disabled = true;
+      const idx = strips.map(st=>rint(st.length-14, st.length-3));
+      const results = strips.map((st,i)=>st[idx[i]]);
+      reels.forEach((r,i)=>{
+        const strip = r.querySelector('.strip');
+        const dur = 1.6 + i*0.7;
+        strip.style.transition = 'transform '+dur+'s cubic-bezier(.15,.85,.25,1)';
+        requestAnimationFrame(()=>requestAnimationFrame(()=>{
+          strip.style.transform = 'translateY(-'+((idx[i]-1)*ITEM)+'px)';
+        }));
+        setTimeout(()=>{ r.classList.add('locked'); buzz(25); }, dur*1000);
+      });
+      setTimeout(()=>{
+        const counts = {}; results.forEach(nm=>counts[nm]=(counts[nm]||0)+1);
+        const uniq = Object.keys(counts);
+        let verdict;
+        if(uniq.length===1){
+          verdict = '<div class="big-result">JACKPOT</div><p class="verdict"><b>'+esc(uniq[0])+'</b> hit the triple — <b>finish your drink.</b> The casino thanks you for playing.</p>';
+          buzz([80,60,80,60,160]);
+        } else if(uniq.length===2){
+          const dbl = uniq.find(nm=>counts[nm]===2), single = uniq.find(nm=>counts[nm]===1);
+          verdict = '<div class="big-result">PAIR</div><p class="verdict"><b>'+esc(dbl)+'</b> landed twice — drinks 4. <b>'+esc(single)+'</b> drinks 2.</p>';
+          buzz([50,50,100]);
+        } else {
+          verdict = '<div class="big-result">'+results.map(esc).join(' · ')+'</div><p class="verdict">All three drink 2. The house always wins.</p>';
+          buzz(60);
+        }
+        $('#res',body).innerHTML = verdict+'<button class="chipbtn big" id="again">Spin Again</button>';
+        $('#again',body).addEventListener('click', round);
+      }, 3300);
+    });
+  }
+  round();
 }});
 
 /* =========================================================

@@ -14,3 +14,6 @@ Higher or Lower · Wheel of Fate · Categories · Chaos Deck
 No accounts, no server, no tracking. Pure static PWA.
 
 Drink responsibly. Water between rounds. 🥂
+
+Sticker art rendered with [Twemoji](https://github.com/jdecked/twemoji) graphics
+(© Twitter/X & contributors, CC-BY 4.0).
