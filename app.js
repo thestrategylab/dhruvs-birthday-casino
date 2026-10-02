@@ -529,11 +529,25 @@ start(body){
 /* ---------- 6. TRIVIA ROYALE ---------- */
 GAMES.push({ id:'trivia', name:'Trivia Royale', pip:['10','♠','b'], hook:'Wrong answer? That’s 3 sips.', min:2,
 start(body){
-  let qs = shuffle(D.trivia), i = 0, last = null, right = 0, wrong = 0;
+  let i = 0, last = null, lastCat = null, right = 0, wrong = 0;
   const SUITS4 = [['♠','st-spade'],['♥','st-heart'],['♣','st-club'],['♦','st-diamond']];
+  const qid = q=>q.q.slice(0,48);
+  let used;
+  try{ used = new Set(JSON.parse(localStorage.getItem('dbc_trivia_used')||'[]')); }catch(e){ used = new Set(); }
+  function saveUsed(){ try{ localStorage.setItem('dbc_trivia_used', JSON.stringify([...used])); }catch(e){} }
+  function draw(){
+    let fresh = D.trivia.filter(q=>!used.has(qid(q)));
+    if(!fresh.length){ used.clear(); saveUsed(); fresh = D.trivia.slice(); toast('Whole bank played — fresh deck of '+D.trivia.length); }
+    // house rule: never the same category twice in a row when avoidable
+    const cats = [...new Set(fresh.map(q=>q.c))];
+    const catPool = cats.length>1 ? cats.filter(c=>c!==lastCat) : cats;
+    const cat = pick(catPool);
+    const q = pick(fresh.filter(x=>x.c===cat));
+    lastCat = q.c; used.add(qid(q)); saveUsed();
+    return q;
+  }
   function next(){
-    if(!qs.length){ qs = shuffle(D.trivia); }
-    const q = qs.pop(); i++;
+    const q = draw(); i++;
     const pool = players.filter(p=>p!==last);
     const p = pick(pool.length?pool:players); last = p;
     const order = shuffle(q.o.map((o,oi)=>({o,oi})));
@@ -958,6 +972,7 @@ function renderFloor(){
       +'<span class="pip '+col+' pip2">'+esc(rank)+'<small>'+esc(suit)+'</small></span>'
       +'<span class="players-need">'+g.min+'+</span>'
       +'<h3>'+esc(g.name)+'</h3><p>'+esc(g.hook)+'</p>';
+    b.style.animationDelay = (GAMES.indexOf(g)*42)+'ms';
     b.addEventListener('click', ()=>{ location.hash = 'g-'+g.id; });
     f.appendChild(b);
   });
