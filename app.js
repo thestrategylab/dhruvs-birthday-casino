@@ -457,8 +457,8 @@ start(body){
       +'<button class="chipbtn big" id="again">Rematch</button>';
     $('#again',body).addEventListener('click', ()=>GAMES.find(g=>g.id==='bolly').start(body));
   }
-  body.innerHTML = '<div class="howto"><b>Teams tonight:</b><br>🎬 <b>Team Shah Rukh:</b> '+A.map(esc).join(', ')
-    +'<br>💪 <b>Team Salman:</b> '+B.map(esc).join(', ')
+  body.innerHTML = '<div class="howto"><b>Teams tonight:</b><br><span style="color:var(--red-hi)">♥</span> <b>Team Shah Rukh:</b> '+A.map(esc).join(', ')
+    +'<br><span style="color:var(--bone)">♠</span> <b>Team Salman:</b> '+B.map(esc).join(', ')
     +'<ul><li>30 seconds a card, shout-outs allowed</li><li>Got it: other team drinks 1</li><li>Missed: your whole team drinks 2</li><li>Losing team finishes with 5</li></ul></div>'
     +'<button class="chipbtn big" id="go">Lights, Camera, Daaru</button>';
   $('#go',body).addEventListener('click', roundScreen);
@@ -664,7 +664,8 @@ start(body){
       +'<button class="chipbtn quiet" id="minus">−</button>'
       +'<div class="scorebox" style="flex:1.2"><div class="t">Sips bet</div><div class="v" id="bv">2</div></div>'
       +'<button class="chipbtn quiet" id="plus">+</button></div>'
-      +'<div class="btnrow"><button class="chipbtn" id="hi">▲ Higher</button><button class="chipbtn red" id="lo">▼ Lower</button></div>'
+      +'<div class="btnrow"><button class="chipbtn" id="hi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 15l7-7 7 7"/></svg> Higher</button>'
+      +'<button class="chipbtn red" id="lo"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 9l7 7 7-7"/></svg> Lower</button></div>'
       +'<div id="res"></div>';
     const zone = $('#zone',body); zone.appendChild(flipCardEl());
     const pc = zone.querySelector('.pcard');
@@ -777,7 +778,7 @@ start(body){
 }});
 
 /* ---------- 15. CHAOS DECK ---------- */
-GAMES.push({ id:'chaos', name:'Chaos Deck', pip:['★','★','r'], hook:'Picolo-style. Anything can happen.', min:3,
+GAMES.push({ id:'chaos', name:'Chaos Deck', pip:['J','★','r'], hook:'Picolo-style. Anything can happen.', min:3,
 start(body){
   let deck = shuffle(D.chaos.map(c=>({...c}))); // copies
   let queue = [], n = 0;
