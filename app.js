@@ -93,6 +93,7 @@ function peekEl(who, secretHTML, hint){
   const slot = d.querySelector('.body-slot');
   const open = e=>{ e.preventDefault(); d.classList.add('open'); slot.innerHTML = secretHTML; };
   const close = ()=>{ d.classList.remove('open'); slot.innerHTML=''; };
+  d.addEventListener('contextmenu', e=>e.preventDefault());
   d.addEventListener('pointerdown', open);
   d.addEventListener('pointerup', close);
   d.addEventListener('pointercancel', close);
